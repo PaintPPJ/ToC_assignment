@@ -1,211 +1,96 @@
-from flask import Flask, request, jsonify, send_from_directory
 import re
+from pathlib import Path
+from flask import Flask, render_template
 
-app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# =========================================================
-# Data Masking Functions
-# =========================================================
-
-def mask_credit_card(match):
-    """
-    1234-5678-9012-3456
-    ->
-    XXXX-XXXX-XXXX-3456
-    """
-
-    card = match.group(0)
-
-    last_four = card[-4:]
-
-    return f"XXXX-XXXX-XXXX-{last_four}"
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static")
+)
 
 
-def mask_email(match):
-    """
-    somchai@company.com
-    ->
-    s******d@company.com
-    """
+def mask_digits_except_last4(value):
+    """ซ่อนตัวเลขทุกหลัก ยกเว้น 4 หลักสุดท้าย โดยคงเครื่องหมายเดิม"""
+    value = str(value or "")
+    digits = re.sub(r"\D", "", value)
+    hidden_count = max(0, len(digits) - 4)
+    count = 0
 
-    username = match.group(1)
-    domain = match.group(2)
+    def replace_digit(match):
+        nonlocal count
+        count += 1
+        if count <= hidden_count:
+            return "X"
+        return match.group(0)
 
-    # กรณีชื่อมี 2 ตัวอักษร
-    if len(username) == 1:
-        masked_username = username + "*"
+    return re.sub(r"\d", replace_digit, value)
 
-    elif len(username) == 2:
-        masked_username = username[0] + "*"
 
+def mask_email(value):
+    """แสดงอักษรตัวแรกและตัวสุดท้ายก่อน @"""
+    value = str(value or "").strip()
+
+    if "@" not in value:
+        return value
+
+    local, domain = value.rsplit("@", 1)
+
+    if len(local) <= 2:
+        masked_local = local[0] + "*" * max(0, len(local) - 1)
     else:
-        masked_username = (
-            username[0]
-            + "*" * (len(username) - 2)
-            + username[-1]
-        )
+        masked_local = local[0] + "*" * (len(local) - 2) + local[-1]
 
-    return f"{masked_username}@{domain}"
+    return masked_local + "@" + domain
 
 
-def mask_phone(match):
-    """
-    093-245-7894
-    ->
-    XXX-XXX-7894
-    """
+def mask_dob(value):
+    """ตัวอย่าง 25/12/2549 -> XX/XX/25XX"""
+    value = str(value or "").strip()
 
-    phone = match.group(0)
+    match = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", value)
 
-    return f"XXX-XXX-{phone[-4:]}"
+    if not match:
+        return value
 
-
-def mask_dob(match):
-    """
-    DOB:25/12/2549
-    ->
-    DOB:XX/XX/25XX
-    """
-
-    prefix = match.group(1)
-    year = match.group(4)
-
-    return f"{prefix}XX/XX/{year[:2]}XX"
+    year = match.group(3)
+    return f"XX/XX/{year[:2]}XX"
 
 
-def mask_address(match):
-    """
-    Address: 689 ซอยลาดกระบัง 19
-    ->
-    Address: XXX ซอยลาดกระบัง 19
-    """
+def mask_address(value):
+    """ซ่อนเฉพาะเลขที่บ้านซึ่งอยู่ต้นข้อความ"""
+    value = str(value or "").strip()
 
-    prefix = match.group(1)
-
-    return f"{prefix}XXX"
-
-
-# =========================================================
-# Main Masking Function
-# =========================================================
-
-def mask_data(text):
-
-    # -----------------------------------------------------
-    # 1. Credit Card
-    # -----------------------------------------------------
-
-    text = re.sub(
-        r"\b\d{4}-\d{4}-\d{4}-\d{4}\b",
-        mask_credit_card,
-        text
-    )
-
-
-    # -----------------------------------------------------
-    # 2. Email
-    # -----------------------------------------------------
-
-    text = re.sub(
-        r"\b([A-Za-z0-9])[A-Za-z0-9._%+-]*([A-Za-z0-9])@([A-Za-z0-9.-]+\.[A-Za-z]{2,})\b",
-        lambda match: (
-            match.group(1)
-            + (
-                "*" * (
-                    len(
-                        match.group(0).split("@")[0]
-                    ) - 2
-                )
-            )
-            + match.group(0).split("@")[0][-1]
-            + "@"
-            + match.group(3)
-        ),
-        text
-    )
-
-
-    # -----------------------------------------------------
-    # 3. Phone Number
-    # -----------------------------------------------------
-
-    text = re.sub(
-        r"\b\d{3}-\d{3}-\d{4}\b",
-        mask_phone,
-        text
-    )
-
-
-    # -----------------------------------------------------
-    # 4. Date of Birth
-    # -----------------------------------------------------
-
-    text = re.sub(
-        r"(?i)(DOB:)\s*(\d{2})/(\d{2})/(\d{4})",
-        mask_dob,
-        text
-    )
-
-
-    # -----------------------------------------------------
-    # 5. Address
-    # -----------------------------------------------------
-
-    text = re.sub(
-        r"(?i)(Address:\s*)\d+",
-        mask_address,
-        text
-    )
-
-
-    return text
-
-
-# =========================================================
-# Web Routes
-# =========================================================
-
-@app.route("/")
-def index():
-
-    return send_from_directory(
-        "main",
-        "main.html"
+    return re.sub(
+        r"^(\s*)(\d+)",
+        r"\1XXX",
+        value,
+        count=1
     )
 
 
 @app.route("/mask", methods=["POST"])
-def mask():
+def mask_data():
+    data = request.get_json(silent=True) or {}
 
-    data = request.get_json()
+    address_parts = [
+        str(data.get("house_number", "")).strip(),
+        str(data.get("soi", "")).strip(),
+        str(data.get("road", "")).strip(),
+        str(data.get("subdistrict", "")).strip(),
+        str(data.get("district", "")).strip(),
+        str(data.get("province", "")).strip(),
+    ]
 
-    if not data or "text" not in data:
+    address = " ".join(part for part in address_parts if part)
 
-        return jsonify({
-            "error": "No text provided"
-        }), 400
+    result = {
+        "credit_card": mask_digits_except_last4(data.get("credit_card", "")),
+        "email": mask_email(data.get("email", "")),
+        "phone": mask_digits_except_last4(data.get("phone", "")),
+        "dob": mask_dob(data.get("dob", "")),
+        "address": mask_address(address),
+    }
 
-
-    input_text = data["text"]
-
-    output_text = mask_data(input_text)
-
-
-    return jsonify({
-        "input": input_text,
-        "output": output_text
-    })
-
-
-# =========================================================
-# Run Server
-# =========================================================
-
-if __name__ == "__main__":
-
-    app.run(
-        debug=True,
-        host="127.0.0.1",
-        port=5000
-    )
+    return jsonify(result)
