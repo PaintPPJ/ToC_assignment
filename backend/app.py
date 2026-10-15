@@ -57,16 +57,13 @@ def mask_dob(value):
     return f"XX/XX/{year[:2]}XX"
 
 
-def mask_address(value):
-    """ซ่อนเฉพาะเลขที่บ้านซึ่งอยู่ต้นข้อความ"""
-    value = str(value or "").strip()
+def mask_address(address):
+    if not address:
+        return ""
 
-    return re.sub(
-        r"^(\s*)(\d+)",
-        r"\1XXX",
-        value,
-        count=1
-    )
+    # Mask เฉพาะตัวเลขที่อยู่ต้นข้อความ
+    return re.sub(r"^(\s*)\d+(?:/\d+)?(?=\s|$)", r"\1XXX", address)
+
 @app.route("/")
 def index():
     return render_template("index.html")
