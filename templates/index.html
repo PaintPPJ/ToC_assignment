@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Masking for PDPA</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <style>
+        .section-title {
+            color: #0756a3;
+            font-size: 20px;
+            margin: 0 0 22px;
+        }
+
+        .form-section {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #d9e0e8;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #344054;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d5dce5;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: #1673c9;
+            box-shadow: 0 0 0 2px #1673c922;
+        }
+
+        .name-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #667085;
+            margin-top: 7px;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 14px;
+            background: #fff0f0;
+            color: #c62828;
+            border: 1px solid #ffcaca;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 14px;
+            background: #edf9f0;
+            color: #18743a;
+            border: 1px solid #b8e4c3;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .testcases {
+            margin-top: 28px;
+            padding: 18px;
+            background: #f7f9fc;
+            border-radius: 8px;
+        }
+
+        .testcases h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        .testcases table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .testcases th,
+        .testcases td {
+            text-align: left;
+            padding: 10px 7px;
+            border-bottom: 1px solid #e1e6ed;
+        }
+
+        .pass {
+            color: #18743a;
+            font-weight: bold;
+        }
+
+        .fail {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        .required {
+            color: #e53935;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            .name-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <span class="brand-icon">🌐</span>
+        <span class="brand-name">ToC Assignment</span>
+    </a>
+
+    <div class="navbar-menu">
+        <a href="/" class="nav-link active">หน้าแรก</a>
+
+        <a href="/video" class="nav-link">Video</a>
+
+        <a href="https://github.com/PaintPPJ/ToC_assignment"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="github-link">
+                
+                
+                <svg class="github-logo"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    style="width:24px !important;height:24px !important;max-width:24px;max-height:24px;flex-shrink:0;display:inline-block;"
+                     aria-hidden="true">
+
+                <path fill="currentColor"
+                    d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.08c-3.1.67-3.75-1.32-3.75-1.32-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.62 1.22 3.26.93.1-.73.4-1.22.71-1.5-2.48-.28-5.09-1.24-5.09-5.5 0-1.21.43-2.2 1.15-2.97-.12-.28-.5-1.41.11-2.94 0 0 .94-.3 3.05 1.13a10.6 10.6 0 0 1 5.55 0c2.12-1.43 3.05-1.13 3.05-1.13.61 1.53.23 2.66.11 2.94.72.77 1.15 1.76 1.15 2.97 0 4.27-2.61 5.22-5.1 5.5.4.35.76 1.02.76 2.06v3.09c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/>
+        </svg>
+        GitHub
+    </a>
+    </div>
+</nav>
+
+
+
+
+<div class="container">
+
+    <header>
+        <p class="tag">ToC Assignment</p>
+        <h1>Data Masking</h1>
+        <p class="subtitle">
+            ระบบเซ็นเซอร์ข้อมูลลูกค้าเพื่อความปลอดภัย
+        </p>
+        <p class="description">
+            ปกป้องข้อมูลส่วนบุคคลด้วย Python Regular Expressions
+        </p>
+    </header>
+
+    <!-- ส่วนตรวจสอบชื่อ -->
+<section class="form-section">
+    <h2 class="section-title">ตรวจสอบและปกปิดข้อมูลส่วนบุคคล</h2>
+
+    
+    <form id="masking-form">
+
+        <!-- ข้อมูลส่วนตัว -->
+        <div class="name-grid">
+            <div class="field">
+                <label for="credit-card">เลขบัตรเครดิต</label>
+                <input
+                    type="text"
+                    id="credit-card"
+                    name="credit-card"
+                    placeholder="____-____-____-____"
+                    maxlength="19"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    required
+                >
+                <small id="credit-card-error" class="error-message"></small>
+
+                <!-- วางก่อนปิด body -->
+                <script src="/static/script.js" defer></script>
+            </div>
+
+            <div class="field">
+                <label for="email">อีเมล</label>
+                <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    placeholder="example@email.com"
+                    autocomplete="off"
+                    required
+                >
+                <small id="email-error" class="error-message" aria-live="polite"></small>
+            </div>
+
+            <div class="field">
+                <label for="phone">เบอร์โทรศัพท์</label>
+                <input
+                    type="text"
+                    id="phone"
+                    name="phone"
+                    placeholder="0812345678"
+                    maxlength="10"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    required
+                >
+                <small id="phone-error" class="error-message" aria-live="polite"></small>
+            </div>
+
+            <div class="field">
+                <label for="birthdate">วันเดือนปีเกิด (พ.ศ.)</label>
+                <input
+                    type="text"
+                    id="birthdate"
+                    name="birthdate"
+                    placeholder="วว/ดด/ปปปป"
+                    readonly
+                    required
+                >
+                <small id="birthdate-error" class="error-message"></small>
+                </div>
+        </div>
+        <!-- ปิด name-grid ตรงนี้ -->
+
+        <!-- ที่อยู่แยกออกมา -->
+        <div class="address-section">
+            <h3 class="section-title">ที่อยู่</h3>
+
+            <div class="address-grid">
+                <div class="field house-number">
+                    <label for="house-number">เลขที่บ้าน</label>
+                    <input type="text" id="house-number"
+                        placeholder="เช่น 689">
+                </div>
+
+                <div class="field soi">
+                    <label for="soi">ซอย</label>
+                    <input type="text" id="soi"
+                        placeholder="เช่น ลาดกระบัง 19">
+                </div>
+
+                <div class="field road">
+                    <label for="road">ถนน</label>
+                    <input type="text" id="road"
+                        placeholder="ชื่อถนน">
+                </div>
+
+                
+                <div class="field province">
+                    <label for="province">จังหวัด</label>
+                    <select id="province" name="province" required>
+                        <option value="">เลือกจังหวัด</option>
+                    </select>
+                </div>
+
+                <div class="field district">
+                    <label for="district">เขต / อำเภอ</label>
+                    <select id="district" name="district" required disabled>
+                        <option value="">เลือกเขต / อำเภอ</option>
+                    </select>
+                </div>
+
+                <div class="field subdistrict">
+                    <label for="subdistrict">แขวง / ตำบล</label>
+                    <select id="subdistrict" name="subdistrict" required disabled>
+                        <option value="">เลือกแขวง / ตำบล</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mask-actions">
+            <button type="button" id="maskButton">
+                แสดงผล Data Masking
+            </button>
+        </div>
+
+        <section id="maskResult" class="mask-result" hidden>
+            <h3>ผลลัพธ์ Data Masking</h3>
+
+            <p>เลขบัตรเครดิต: <strong id="resultCreditCard"></strong></p>
+            <p>อีเมล: <strong id="resultEmail"></strong></p>
+            <p>เบอร์โทรศัพท์: <strong id="resultPhone"></strong></p>
+            <p>วันเดือนปีเกิด: <strong id="resultDob"></strong></p>
+            <p>ที่อยู่: <strong id="resultAddress"></strong></p>
+        </section>
+
+<script src="/static/masking.js" defer></script>
+
+        <!-- hint และปุ่มเดิมให้อยู่ต่อจากนี้ -->
+    </form>
+
+
+    <div id="result" class="result-section" hidden>
+        <h3>ผลลัพธ์ Data Masking</h3>
+        <div id="result-content"></div>
+    </div>
+</section>
+```
+
+
+
+    
+
+    <footer>
+        <p>Data Masking for PDPA · Python Regex</p>
+    </footer>
+</div>
+
+<script>
+    // ตรวจสอบว่าแต่ละชื่อเป็นภาษาไทยหรือภาษาอังกฤษ
+    function getNameLanguage(name) {
+        name = name.trim();
+
+        if (!name) {
+            return null;
+        }
+
+        // ภาษาไทย: อักษรไทยและเครื่องหมายประกอบอักษร
+        const thaiPattern =
+            /^[\u0E01-\u0E3A\u0E40-\u0E4E\u0E50-\u0E59]+(?:\s+[\u0E01-\u0E3A\u0E40-\u0E4E\u0E50-\u0E59]+)*$/u;
+
+        // ภาษาอังกฤษ: ตัวอักษร A-Z, ช่องว่าง, ขีดกลาง และ apostrophe
+        const englishPattern =
+            /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
+
+        if (thaiPattern.test(name)) {
+            return "thai";
+        }
+
+        if (englishPattern.test(name)) {
+            return "english";
+        }
+
+        return null;
+    }
+
+    function checkName() {
+        const firstName =
+            document.getElementById("firstName").value;
+
+        const lastName =
+            document.getElementById("lastName").value;
+
+        const error =
+            document.getElementById("nameError");
+
+        const success =
+            document.getElementById("nameSuccess");
+
+        const firstLanguage = getNameLanguage(firstName);
+        const lastLanguage = getNameLanguage(lastName);
+
+        error.style.display = "none";
+        success.style.display = "none";
+
+        if (!firstName.trim() || !lastName.trim()) {
+            error.textContent =
+                "กรุณากรอกชื่อจริงและนามสกุล";
+            error.style.display = "block";
+            return false;
+        }
+
+        if (!firstLanguage || !lastLanguage) {
+            error.textContent =
+                "กรุณากรอกชื่อเป็นภาษาไทยหรือภาษาอังกฤษเท่านั้น";
+            error.style.display = "block";
+            return false;
+        }
+
+        if (firstLanguage !== lastLanguage) {
+            error.textContent =
+                "กรุณาใส่ชื่อและนามสกุลภาษาเดียวกัน";
+            error.style.display = "block";
+            return false;
+        }
+
+        success.textContent =
+            firstLanguage === "thai"
+                ? "ตรวจสอบสำเร็จ: ชื่อและนามสกุลเป็นภาษาไทย"
+                : "ตรวจสอบสำเร็จ: ชื่อและนามสกุลเป็นภาษาอังกฤษ";
+
+        success.style.display = "block";
+        return true;
+    }
+
+    // ทดสอบข้อมูลตัวอย่างทั้งหมด
+    function runTestCases() {
+        const cases = [
+            ["สมชาย", "ใจดี", true],
+            ["Somchai", "Jaidee", true],
+            ["สมชาย", "Jaidee", false],
+            ["Somchai", "ใจดี", false],
+            ["12345", "ใจดี", false],
+            ["", "Jaidee", false],
+            ["John", "O'Brien", true],
+            ["สมชาย ใจดี", "รักเรียน", true]
+        ];
+
+        let passed = 0;
+
+        cases.forEach(([first, last, expected]) => {
+            const actual =
+                getNameLanguage(first) !== null &&
+                getNameLanguage(first) === getNameLanguage(last);
+
+            if (actual === expected) {
+                passed++;
+            }
+
+            console.log({
+                firstName: first,
+                lastName: last,
+                expected,
+                actual,
+                result: actual === expected ? "PASS" : "FAIL"
+            });
+        });
+
+        const summary =
+            document.getElementById("testSummary");
+
+        summary.textContent =
+            `ผลการทดสอบ: ผ่าน ${passed}/${cases.length} กรณี`;
+
+        summary.style.color =
+            passed === cases.length ? "#18743a" : "#c62828";
+    }
+
+    // ตรวจสอบชื่ออีกครั้งก่อนส่งข้อความไปเซ็นเซอร์
+    document.getElementById("maskForm")
+        .addEventListener("submit", function(event) {
+            const first = document.getElementById("firstName").value;
+            const last = document.getElementById("lastName").value;
+
+            // หากยังไม่กรอกชื่อทั้งสองช่อง ให้ใช้งาน Data Masking ได้
+            if (!first.trim() && !last.trim()) {
+                return;
+            }
+
+            if (!checkName()) {
+                event.preventDefault();
+            }
+        });
+
+    function copyResult() {
+        const result = document.getElementById("maskedResult");
+
+        if (result) {
+            navigator.clipboard.writeText(result.innerText)
+                .then(() => alert("คัดลอกผลลัพธ์แล้ว"))
+                .catch(() => alert("ไม่สามารถคัดลอกได้"));
+        }
+    }
+</script>
+</body>
+</html>
