@@ -1,12 +1,20 @@
+function maskHouseNumber(address) {
+
+    return address.replace(
+        /^(\s*)\d+(?:\/\d+)?(?=\s|$)/,
+        "$1XXX"
+    );
+}
 
 const maskButton = document.getElementById("maskButton");
 
+
+
+
 maskButton?.addEventListener("click", async () => {
-    // อ่านค่าจากช่องกรอก
     const getValue = id =>
         document.getElementById(id)?.value?.trim() || "";
 
-    // อ่านข้อความที่แสดงใน dropdown ที่เลือก
     const getSelectedText = id => {
         const select = document.getElementById(id);
         return select?.selectedOptions?.[0]?.value
@@ -54,9 +62,9 @@ maskButton?.addEventListener("click", async () => {
         document.getElementById("resultPhone").textContent =
             result.phone;
         document.getElementById("resultDob").textContent =
-            result.dob;
+            "DOB: " + result.dob;
         document.getElementById("resultAddress").textContent =
-            result.address;
+            maskHouseNumber(result.address || "");
 
         document.getElementById("maskResult").hidden = false;
     } catch (error) {
