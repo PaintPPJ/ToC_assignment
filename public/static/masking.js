@@ -27,7 +27,7 @@ maskButton?.addEventListener("click", async () => {
     email: getValue("email"),
     phone: getValue("phone"),
     dob: getValue("birthdate"),
-    house_number: getValue("houseNumber"),
+    house_number: getValue("house-number"),
     soi: getValue("soi"),
     road: getValue("road"),
     province: getSelectedText("province"),

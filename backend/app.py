@@ -57,12 +57,7 @@ def mask_dob(value):
     return f"XX/XX/{year[:2]}XX"
 
 
-def mask_address(address):
-    if not address:
-        return ""
 
-    # Mask เฉพาะตัวเลขที่อยู่ต้นข้อความ
-    return re.sub(r"^(\s*)\d+(?:/\d+)?(?=\s|$)", r"\1XXX", address)
 
 @app.route("/")
 def index():
@@ -72,8 +67,11 @@ def index():
 def mask_data():
     data = request.get_json(silent=True) or {}
 
+    house_number = str(data.get("house_number", "")).strip()
+    masked_house_number = re.sub(r"\d", "X", house_number)
+    print("House number:", repr(data.get("house_number")))
     address_parts = [
-        str(data.get("house_number", "")).strip(),
+        masked_house_number,
         str(data.get("soi", "")).strip(),
         str(data.get("road", "")).strip(),
         str(data.get("subdistrict", "")).strip(),
@@ -88,10 +86,11 @@ def mask_data():
         "email": mask_email(data.get("email", "")),
         "phone": mask_digits_except_last4(data.get("phone", "")),
         "dob": mask_dob(data.get("dob", "")),
-        "address": mask_address(address),
+        "address": address,
     }
 
     return jsonify(result)
+
 
 
 if __name__ == "__main__":
